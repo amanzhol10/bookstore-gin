@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bookstore/db"
 	"bookstore/handlers"
+	"bookstore/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	db.Init()
+
 	r := gin.Default()
 
 	r.GET("/books", handlers.GetBooks)
@@ -17,9 +21,15 @@ func main() {
 
 	r.GET("/authors", handlers.GetAuthors)
 	r.POST("/authors", handlers.CreateAuthor)
-
 	r.GET("/categories", handlers.GetCategories)
 	r.POST("/categories", handlers.CreateCategory)
 
-	r.Run(":8080")
+	auth := r.Group("/", middleware.AuthRequired())
+	{
+		auth.GET("/books/favorites", handlers.GetFavorites)
+		auth.PUT("/books/:id/favorites", handlers.AddFavorite)
+		auth.DELETE("/books/:id/favorites", handlers.RemoveFavorite)
+	}
+
+	r.Run(":8000")
 }
